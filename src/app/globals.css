@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* utility to avoid content under the fixed bottom nav and respect iOS safe area */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 12px);
+}
+
+main {
+  padding-bottom: 64px; /* fallback so content doesn't get covered by nav */
+}
