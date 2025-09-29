@@ -9,21 +9,25 @@ export default function Page() {
 	const [installAvailable, setInstallAvailable] = useState(false);
 	const [installing, setInstalling] = useState(false);
 
-	useEffect(() => {
-		// Detect if the deferred install prompt has been captured by InstallPrompt
-		// which stores it on window.__beachlife_before_install_event
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
-		if (typeof window !== 'undefined' && window.__beachlife_before_install_event) {
-			setInstallAvailable(true);
-		}
-	}, []);
+		useEffect(() => {
+			// Detect if the deferred install prompt has been captured by InstallPrompt
+			// which stores it on window.__beachlife_before_install_event
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			if (typeof window !== 'undefined' && window.__beachlife_before_install_event) {
+				setInstallAvailable(true);
+			}
+		}, []);
 
 	async function onInstallClick() {
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
-		const be = typeof window !== 'undefined' ? window.__beachlife_before_install_event : null;
-		if (!be) return router.push('/login');
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			const be = typeof window !== 'undefined' ? window.__beachlife_before_install_event : null;
+			if (!be) {
+				// If the browser didn't expose an automatic install prompt, show manual
+				// instructions on the installing page so users can add the app to home.
+				return router.push('/installing');
+			}
 
 		try {
 			setInstalling(true);
@@ -49,13 +53,16 @@ export default function Page() {
 				<p className="mt-2 text-sm text-gray-700 dark:text-gray-300">Install the app for quicker access and a better experience.</p>
 
 				<div className="mt-4">
-					<button
-						onClick={onInstallClick}
-						className="px-4 py-2 rounded-md bg-cyan-500 text-white"
-						disabled={installing}
-					>
-						{installAvailable ? (installing ? 'Installing...' : 'Install BeachLife') : 'Get Started'}
-					</button>
+								<button
+									onClick={onInstallClick}
+									className="px-4 py-2 rounded-md bg-cyan-500 text-white"
+									disabled={installing}
+								>
+									{installing ? 'Installing...' : 'Install BeachLife'}
+								</button>
+											{!installAvailable && (
+												<div className="mt-2 text-sm text-gray-500">If automatic install is not available in your browser, tap the button for manual install instructions.</div>
+											)}
 				</div>
 			</div>
 		</section>
