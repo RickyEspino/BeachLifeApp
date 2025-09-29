@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState } from 'react';
-import { supabase, isSupabaseClientReady } from '../../../lib/supabaseClient';
+import { supabase, isSupabaseClientReady, ensureReady } from '../../../lib/supabaseClient';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,8 +11,13 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     if (!isSupabaseClientReady) {
-      setLoading(false);
-      return alert('Supabase client not ready. Please retry in a normal browser session (check your environment).');
+      // Try to lazily initialize in case we're in a PWA/standalone window where
+      // env vars or runtime conditions are now available.
+      const ok = await ensureReady();
+      if (!ok) {
+        setLoading(false);
+        return alert('Supabase client not ready. Please retry in a normal browser session (check your environment).');
+      }
     }
   const sb = supabase as any;
   const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/callback` : undefined;

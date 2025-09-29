@@ -14,6 +14,20 @@ if (typeof window !== 'undefined' && url && anonKey) {
 	_supabase = createClient(url, anonKey);
 }
 
+/**
+ * Attempt to ensure the real Supabase client is created at runtime.
+ * Useful in environments like PWAs or standalone windows where the module
+ * may have loaded earlier than expected but env vars are present now.
+ */
+export function ensureSupabaseClient(): SupabaseClient | null {
+	if (_supabase) return _supabase;
+	if (typeof window !== 'undefined' && url && anonKey) {
+		_supabase = createClient(url, anonKey);
+		return _supabase;
+	}
+	return null;
+}
+
 function makeStub(): unknown {
 	// Provide a minimal no-op client surface that returns resolved shapes instead of throwing.
 	// This prevents a hard client-side exception during hydration when env vars are missing.
@@ -52,3 +66,8 @@ export const supabase: SupabaseClient = (_supabase ?? makeStub()) as unknown as 
 // This is useful to show friendlier errors when running in environments where
 // the public env vars are not available (for example during certain SSR or preview builds).
 export const isSupabaseClientReady = Boolean(_supabase);
+
+// Provide a runtime helper to check/ensure readiness asynchronously.
+export async function ensureReady(): Promise<boolean> {
+	return Boolean(ensureSupabaseClient());
+}
