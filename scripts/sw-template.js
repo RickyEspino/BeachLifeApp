@@ -1,6 +1,6 @@
 /* Workbox InjectManifest template.
    This file will be processed by workbox-build injectManifest which will
-   fill in self.__WB_MANIFEST and produce a final sw-generated.js in public/.
+   fill in the precache manifest placeholder and produce a final sw-generated.js in public/.
 */
 
 /* global workbox */
@@ -35,3 +35,4 @@ workbox.routing.setCatchHandler(async ({ event }) => {
   }
   return Response.error();
 });
+

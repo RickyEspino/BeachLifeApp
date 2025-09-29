@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const workboxBuild = require('workbox-build');
 const path = require('path');
 

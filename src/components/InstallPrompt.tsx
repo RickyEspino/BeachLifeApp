@@ -1,16 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
+
+// Minimal typed shape for the beforeinstallprompt event
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 export default function InstallPrompt() {
-  const [deferred, setDeferred] = useState<any | null>(null);
+  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
-    function beforeInstall(e: any) {
-      e.preventDefault();
-      setDeferred(e);
+    function beforeInstall(e: Event) {
+      const be = e as BeforeInstallPromptEvent;
+      be.preventDefault();
+      setDeferred(be);
       setVisible(true);
     }
 
@@ -28,13 +36,15 @@ export default function InstallPrompt() {
     };
   }, []);
 
-  function onInstall() {
+  async function onInstall() {
     if (!deferred) return;
-    deferred.prompt();
-    deferred.userChoice.then(() => {
+    try {
+      await deferred.prompt();
+      await deferred.userChoice;
+    } finally {
       setDeferred(null);
       setVisible(false);
-    });
+    }
   }
 
   function onUpdate() {
@@ -51,7 +61,9 @@ export default function InstallPrompt() {
   return (
     <div style={{ position: 'fixed', bottom: 80, left: 16, right: 16, display: 'flex', justifyContent: 'center' }}>
       <div style={{ background: 'white', padding: 12, borderRadius: 12, boxShadow: '0 6px 20px rgba(2,6,23,0.08)', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <img src="/icons/icon-192.png" style={{ width: 40, height: 40, borderRadius: 8 }} alt="app" />
+        <div style={{ width: 40, height: 40, borderRadius: 8, overflow: 'hidden' }}>
+          <Image src="/icons/icon-192.png" width={40} height={40} alt="app" />
+        </div>
         <div style={{ minWidth: 200 }}>
           <div style={{ fontWeight: 600 }}>Install BeachLife</div>
           <div style={{ fontSize: 12, color: '#475569' }}>Save the app to your home screen for faster access</div>
