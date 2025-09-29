@@ -15,10 +15,33 @@ if (typeof window !== 'undefined' && url && anonKey) {
 }
 
 function makeStub(): unknown {
-	const thrower = () => {
-		throw new Error('Supabase client not initialized. Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set and that this code runs in the browser.');
-	};
-	const stub = new Proxy({}, { get: () => thrower }) as unknown;
+	// Provide a minimal no-op client surface that returns resolved shapes instead of throwing.
+	// This prevents a hard client-side exception during hydration when env vars are missing.
+	const noOp = async () => ({ data: null, error: { message: 'Supabase client not initialized' } });
+
+	const stub = {
+			auth: {
+				getUser: async () => ({ data: null }),
+				signInWithOtp: async () => ({ error: { message: 'Supabase client not initialized' } }),
+				onAuthStateChange: () => ({ data: null, subscription: { unsubscribe: () => {} } }),
+			},
+			from: () => ({
+			select: async () => ({ data: null, error: { message: 'Supabase client not initialized' } }),
+			insert: async () => ({ data: null, error: { message: 'Supabase client not initialized' } }),
+			update: async () => ({ data: null, error: { message: 'Supabase client not initialized' } }),
+			upsert: async () => ({ data: null, error: { message: 'Supabase client not initialized' } }),
+			maybeSingle: async () => ({ data: null, error: { message: 'Supabase client not initialized' } }),
+			single: async () => ({ data: null, error: { message: 'Supabase client not initialized' } }),
+		}),
+			rpc: async () => ({ data: null, error: { message: 'Supabase client not initialized' } }),
+			storage: {
+				from: () => ({
+					upload: async () => ({ data: null, error: { message: 'Supabase client not initialized' } }),
+					getPublicUrl: () => ({ publicUrl: '' }),
+				}),
+			},
+	} as unknown;
+
 	return stub;
 }
 
