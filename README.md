@@ -36,3 +36,28 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # BeachLifeApp
 # BeachLifeApp
+
+## Map setup
+
+This app uses MapLibre GL (open-source) for the map view — no Mapbox token is required.
+
+## Automated git push (local)
+
+There is a small helper script to commit and push your current changes. It runs locally and should be used from your development machine.
+
+Usage:
+
+```bash
+# run checks (types & lint), then commit and push
+npm run deploy
+
+# to override commit message
+COMMIT_MSG="my message" npm run deploy
+```
+
+The script:
+- stages all changes
+- commits with `COMMIT_MSG` (or a timestamped message if not provided)
+- pushes to the current branch
+
+Note: This script runs git commands and assumes you have a configured remote named `origin` and proper credentials to push.

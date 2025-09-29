@@ -6,13 +6,16 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prepush:check": "npx tsc --noEmit && npm run lint",
+    "git-push": "./scripts/git-push.sh",
+    "deploy": "npm run prepush:check && npm run git-push"
   },
   "dependencies": {
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.4",
-    "mapbox-gl": "^2.15.0"
+  "next": "15.5.4",
+  "maplibre-gl": "^2.4.0"
   },
   "devDependencies": {
     "typescript": "^5",

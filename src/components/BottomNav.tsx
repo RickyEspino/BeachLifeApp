@@ -123,7 +123,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Bottom navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur-md dark:bg-black/90"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur-md dark:bg-black/90 bottom-nav"
     >
       <div className="mx-auto flex max-w-xl justify-between px-4 py-2 safe-bottom">
         {items.map((it) => {

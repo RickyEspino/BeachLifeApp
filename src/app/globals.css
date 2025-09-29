@@ -41,6 +41,7 @@ main {
   --glass-blur: 8px;
   --elev-1: 0 6px 18px rgba(16,24,40,0.06);
   --elev-2: 0 10px 30px rgba(16,24,40,0.12);
+  --bottom-nav-height: 64px;
 }
 
 .app-root {
@@ -69,6 +70,26 @@ main {
 
 .glass-card.elevated {
   box-shadow: var(--elev-2);
+}
+
+/* Bottom nav sizing and full-map helper for mobile app layout */
+.bottom-nav {
+  height: var(--bottom-nav-height);
+}
+
+.map-full {
+  width: 100%;
+  height: calc(100vh - var(--bottom-nav-height) - env(safe-area-inset-bottom, 0px));
+}
+
+/* Hide bottom nav when interacting with map (mobile behavior) */
+body.hide-bottom-nav .bottom-nav {
+  transform: translateY(var(--bottom-nav-height));
+  transition: transform 200ms ease-out;
+}
+
+body .bottom-nav {
+  transition: transform 200ms ease-in;
 }
 
 @media (prefers-color-scheme: dark) {
