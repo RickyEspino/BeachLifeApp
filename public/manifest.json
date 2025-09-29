@@ -1,7 +1,7 @@
 {
   "name": "BeachLife",
   "short_name": "BeachLife",
-  "start_url": "/",
+  "start_url": "/login",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#06b6d4",

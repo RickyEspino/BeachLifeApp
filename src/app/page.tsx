@@ -31,20 +31,12 @@ export default function Page() {
 			await be.userChoice;
 		} catch (err) {
 			// ignore
-		} finally {
-			// After install prompt (accepted or dismissed) route user appropriately.
-			// If the user is authenticated, send them to /now; otherwise to /login.
-			try {
-				const { data } = await supabase.auth.getUser();
-				if (data?.user) {
-					router.push('/now');
-				} else {
-					router.push('/login');
-				}
-			} catch (e) {
-				router.push('/login');
+			} finally {
+				// Show the installing page while the user completes the OS-level install.
+				// Once the app is installed and opened from the device, the manifest
+				// `start_url` will land the installed app at /login.
+				router.push('/installing');
 			}
-		}
 	}
 
 	return (
