@@ -14,6 +14,9 @@
     "deploy": "npm run prepush:check && npm run git-push"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.58.0",
+    "canvas-confetti": "^1.9.3",
+  "qrcode": "^1.5.1",
     "maplibre-gl": "^2.4.0",
     "next": "15.5.4",
     "react": "19.1.0",
@@ -24,6 +27,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
