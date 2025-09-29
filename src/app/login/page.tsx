@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase, isSupabaseClientReady } from '../../../lib/supabaseClient';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,12 +10,12 @@ export default function LoginPage() {
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const sb = supabase;
-    if (!sb) {
+    if (!isSupabaseClientReady) {
       setLoading(false);
-      return alert('Supabase not initialized. Try in the browser after env is available.');
+      return alert('Supabase client not ready. Please retry in a normal browser session (check your environment).');
     }
-    const { error } = await (sb as any).auth.signInWithOtp({ email });
+    const sb = supabase as any;
+    const { error } = await sb.auth.signInWithOtp({ email });
     setLoading(false);
     if (error) {
       alert(error.message);

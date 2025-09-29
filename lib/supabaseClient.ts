@@ -47,3 +47,8 @@ function makeStub(): unknown {
 
 // Export typed Supabase client. If the real client is not available we cast the stub at runtime.
 export const supabase: SupabaseClient = (_supabase ?? makeStub()) as unknown as SupabaseClient;
+
+// Helpful runtime flag so UI can detect whether the real client was initialized.
+// This is useful to show friendlier errors when running in environments where
+// the public env vars are not available (for example during certain SSR or preview builds).
+export const isSupabaseClientReady = Boolean(_supabase);
