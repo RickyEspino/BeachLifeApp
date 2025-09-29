@@ -8,7 +8,7 @@ declare module 'mapbox-gl' {
 
   export class Map {
     constructor(options: MapboxOptions);
-    addControl(control: any): void;
+  addControl(control: unknown): void;
     remove(): void;
   }
 
