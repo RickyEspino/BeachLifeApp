@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNav from "../components/BottomNav";
+import SwRegistration from "../components/SwRegistration";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +29,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <link rel="manifest" href="/manifest.json" />
         <main className="app-root">
           <div className="app-container">{children}</div>
         </main>
+        <SwRegistration />
         <BottomNav />
       </body>
     </html>
