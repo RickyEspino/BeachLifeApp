@@ -43,9 +43,10 @@ export default function MerchantRegister() {
           setCreating(false);
           return;
         }
-        const payload = { amountCents, points, expires_at };
+    const payload = { amountCents, points, expires_at };
   localStorage.setItem('pending_claim', JSON.stringify(payload));
-  await (sb as any).auth.signInWithOtp({ email });
+  const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/callback` : undefined;
+  await (sb as any).auth.signInWithOtp({ email }, { redirectTo });
         alert('Magic link sent. Sign in and return to this page to create the claim.');
         setCreating(false);
         return;

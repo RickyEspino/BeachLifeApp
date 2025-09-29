@@ -14,8 +14,9 @@ export default function LoginPage() {
       setLoading(false);
       return alert('Supabase client not ready. Please retry in a normal browser session (check your environment).');
     }
-    const sb = supabase as any;
-    const { error } = await sb.auth.signInWithOtp({ email });
+  const sb = supabase as any;
+  const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/callback` : undefined;
+  const { error } = await sb.auth.signInWithOtp({ email }, { redirectTo });
     setLoading(false);
     if (error) {
       alert(error.message);
