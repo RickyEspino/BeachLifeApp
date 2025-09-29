@@ -41,23 +41,13 @@ export default function ClaimPage() {
           return;
         }
         setStatus('awarding');
-        // award points to profile
-        const pointsToAdd = claimData.points ?? 0;
-        // increment safely on server; here use upsert fallback
-        await (sb as any).from('profiles').upsert({ id: user.id }).select();
-        try {
-          await (sb as any).rpc('increment_points', { uid: user.id, delta: pointsToAdd });
-        } catch {
-          // fallback: read current and update
-          const { data: p } = await (sb as any).from('profiles').select('points').eq('id', user.id).single();
-          const current = (p as { points?: number } | null)?.points ?? 0;
-          await (sb as any).from('profiles').update({ points: current + pointsToAdd }).eq('id', user.id);
-        }
-
-        // mark claim as claimed
-        await (sb as any).from('claims').update({ claimed: true, claimed_by: user.id }).eq('id', id);
-
-        // show confetti
+        // call atomic RPC to award points and mark claim claimed
+        const rpcRes = await (sb as any).rpc('award_and_claim', { claim_id: id });
+        // PostgREST RPC may return { data, error }
+        const rpcTyped = rpcRes as unknown as { data?: any; error?: any };
+        if (rpcTyped.error) throw rpcTyped.error;
+        const rpcData = rpcTyped.data ?? rpcRes;
+        // If success, show confetti and redirect
         confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
         setStatus('done');
         setTimeout(() => router.push('/now'), 2000);
