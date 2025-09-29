@@ -11,6 +11,22 @@ export default function SwRegistration() {
     navigator.serviceWorker.register(swPath).then((reg) => {
       console.log('SW registered', reg);
 
+      // If there's a waiting worker, tell it to skip waiting so it becomes active
+      // immediately and serves the newest content.
+      if (reg.waiting) {
+        try {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } catch (err) {
+          console.warn('Failed to message waiting SW', err);
+        }
+      }
+
+      // Reload the page when the new service worker takes control.
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('Service worker controller changed — reloading to apply update');
+        window.location.reload();
+      });
+
       // listen for updatefound
       if (reg.waiting) {
         window.dispatchEvent(new CustomEvent('swUpdated'));
