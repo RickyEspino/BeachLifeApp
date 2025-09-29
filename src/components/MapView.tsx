@@ -34,12 +34,37 @@ export default function MapView() {
     if (!mapContainer.current) return;
     if (mapRef.current) return;
 
-    const defaultCenter: [number, number] = [-122.431297, 37.773972];
+    // Myrtle Beach, SC (lng, lat)
+    const defaultCenter: [number, number] = [-78.8856, 33.6891];
+
+    // simple satellite style using ESRI World Imagery raster tiles (no token required)
+    const satelliteStyle = {
+      version: 8,
+      sources: {
+        sat: {
+          type: "raster",
+          tiles: [
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          ],
+          tileSize: 256,
+        },
+      },
+      layers: [
+        {
+          id: "sat-layer",
+          type: "raster",
+          source: "sat",
+        },
+      ],
+    } as const;
 
     // create the real Maplibre map and keep a minimal typed reference for our usage
+    // cast via unknown to avoid ESLint complaining about explicit 'any' while still allowing
+    // the inline style object; this is a minimal, focused assertion.
     const realMap = new maplibregl.Map({
       container: mapContainer.current,
-      style: "https://demotiles.maplibre.org/style.json",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      style: satelliteStyle as unknown as any,
       center: defaultCenter,
       zoom: 12,
     });
