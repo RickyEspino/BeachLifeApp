@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
+    "postbuild": "node scripts/generate-sw.js",
     "start": "next start",
     "lint": "eslint",
     "prepush:check": "npx tsc --noEmit && npm run lint",
@@ -12,20 +13,21 @@
     "deploy": "npm run prepush:check && npm run git-push"
   },
   "dependencies": {
+    "maplibre-gl": "^2.4.0",
+    "next": "15.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-  "next": "15.5.4",
-  "maplibre-gl": "^2.4.0"
+    "workbox-build": "^7.3.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-  "@tailwindcss/postcss": "^4",
-  "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
