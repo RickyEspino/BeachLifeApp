@@ -8,6 +8,7 @@ const MAPBOX_TOKEN = "pk.eyJ1IjoiZXNwaW5vd2VicyIsImEiOiJjbWc0OWFqcXAwMW94MmtweWF
 
 export default function Page() {
 	const mapContainer = useRef<HTMLDivElement | null>(null);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const mapRef = useRef<any | null>(null);
 
 	useEffect(() => {
