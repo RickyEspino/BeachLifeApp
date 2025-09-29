@@ -14,14 +14,15 @@ export default function MerchantClaimPage() {
   useEffect(() => {
     let mounted = true;
     async function fetchClaim() {
-      const { data, error } = await supabase.from('claims').select().eq('id', id).single();
+      const sb = supabase as any;
+      const { data, error } = await sb.from('claims').select().eq('id', id).single();
       if (error || !data) {
         alert('Claim not found');
         router.push('/merchant/register');
         return;
       }
       const now = new Date();
-      const expires = new Date(data.expires_at);
+      const expires = new Date((data as any).expires_at);
       if (expires.getTime() <= now.getTime()) {
         alert('Claim expired');
         router.push('/merchant/register');

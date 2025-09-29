@@ -13,7 +13,12 @@ export default function ClaimPage() {
   useEffect(() => {
     async function processClaim() {
       try {
-        const { data: claimData, error: claimErr } = await supabase.from('claims').select().eq('id', id).single();
+        const sb = supabase;
+        if (!sb) {
+          setStatus('error');
+          return;
+        }
+        const { data: claimData, error: claimErr } = await (sb as any).from('claims').select().eq('id', id).single();
         if (claimErr || !claimData) {
           setStatus('error');
           return;
@@ -27,8 +32,8 @@ export default function ClaimPage() {
           setStatus('error');
           return;
         }
-        const { data: userData } = await supabase.auth.getUser();
-        const user = userData?.user;
+  const { data: userData } = await (sb as any).auth.getUser();
+  const user = userData?.user;
         if (!user) {
           // prompt sign in by sending magic link to a prompt - simplified: route to /login with ?claim=
           router.push(`/login?claim=${id}`);
@@ -39,18 +44,18 @@ export default function ClaimPage() {
         // award points to profile
         const pointsToAdd = claimData.points ?? 0;
         // increment safely on server; here use upsert fallback
-        await supabase.from('profiles').upsert({ id: user.id }).select();
+        await (sb as any).from('profiles').upsert({ id: user.id }).select();
         try {
-          await supabase.rpc('increment_points', { uid: user.id, delta: pointsToAdd });
+          await (sb as any).rpc('increment_points', { uid: user.id, delta: pointsToAdd });
         } catch {
           // fallback: read current and update
-          const { data: p } = await supabase.from('profiles').select('points').eq('id', user.id).single();
+          const { data: p } = await (sb as any).from('profiles').select('points').eq('id', user.id).single();
           const current = (p as { points?: number } | null)?.points ?? 0;
-          await supabase.from('profiles').update({ points: current + pointsToAdd }).eq('id', user.id);
+          await (sb as any).from('profiles').update({ points: current + pointsToAdd }).eq('id', user.id);
         }
 
         // mark claim as claimed
-        await supabase.from('claims').update({ claimed: true, claimed_by: user.id }).eq('id', id);
+        await (sb as any).from('claims').update({ claimed: true, claimed_by: user.id }).eq('id', id);
 
         // show confetti
         confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });

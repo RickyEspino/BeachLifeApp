@@ -7,32 +7,34 @@ export default function AuthListener() {
   const router = useRouter();
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange(async (event) => {
+    const sb = supabase;
+    if (!sb) return;
+  const { data: sub } = sb.auth.onAuthStateChange(async (event: string) => {
       if (event === 'SIGNED_IN') {
         // if there's pending merchant data saved before sign-in, process it
         const pending = localStorage.getItem('pending_merchant');
         // if there's a pending claim saved before sign-in, process it (merchant creating a claim)
         const pendingClaim = localStorage.getItem('pending_claim');
-        try {
-          const { data: userData } = await supabase.auth.getUser();
+          try {
+          const { data: userData } = await sb.auth.getUser();
           const user = userData?.user;
           if (pending && user?.id) {
             const payload = JSON.parse(pending);
             // upsert profile with merchant role
-            await supabase.from('profiles').upsert({ id: user.id, role: 'merchant', username: payload.businessName });
+            await sb.from('profiles').upsert({ id: user.id, role: 'merchant', username: payload.businessName });
             // insert merchant record
-            await supabase.from('merchants').insert({ id: user.id, business_name: payload.businessName, address: payload.address, category: payload.category, lat: payload.lat, lng: payload.lng });
+            await sb.from('merchants').insert({ id: user.id, business_name: payload.businessName, address: payload.address, category: payload.category, lat: payload.lat, lng: payload.lng });
             localStorage.removeItem('pending_merchant');
             router.push('/merchant/dashboard');
             return;
           }
 
           if (pendingClaim && user?.id) {
-            try {
+              try {
               const payload = JSON.parse(pendingClaim);
               const { amountCents, points, expires_at } = payload;
               // call RPC to create claim server-side
-              const rpcRes = await supabase.rpc('create_claim', { merchant: user.id, amount_cents: amountCents, points, expires_at });
+              const rpcRes = await sb.rpc('create_claim', { merchant: user.id, amount_cents: amountCents, points, expires_at });
               const rpcTyped = rpcRes as unknown as { data?: unknown; error?: unknown };
               const rpcData = rpcTyped.data ?? null;
               const rpcErr = rpcTyped.error ?? null;

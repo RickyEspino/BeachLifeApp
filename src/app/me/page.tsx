@@ -13,7 +13,9 @@ export default function Page() {
 				const { data: userData } = await supabase.auth.getUser();
 				const user = userData?.user;
 				if (user?.id) {
-					const sel = await supabase.from('profiles').select('username, avatar_url, points').eq('id', user.id).maybeSingle();
+					const sb = supabase;
+					if (!sb) return;
+					const sel = await (sb as any).from('profiles').select('username, avatar_url, points').eq('id', user.id).maybeSingle();
 								if (!sel.error && sel.data) {
 									const d = sel.data as { username?: string; avatar_url?: string; points?: number };
 									setProfile({ username: d.username, avatar_url: d.avatar_url });

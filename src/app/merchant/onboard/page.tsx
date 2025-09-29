@@ -18,7 +18,7 @@ export default function MerchantOnboardPage() {
       const payload = { email, businessName, address, category, lat, lng };
       // save pending merchant data to localStorage; will be processed after sign-in
       localStorage.setItem('pending_merchant', JSON.stringify(payload));
-      const { error } = await supabase.auth.signInWithOtp({ email });
+  const { error } = await (supabase as any).auth.signInWithOtp({ email });
       if (error) throw error;
       alert('Magic link sent to the merchant email. After sign-in you will be routed to the merchant dashboard.');
     } catch (err) {

@@ -9,7 +9,12 @@ export default function LoginPage() {
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const sb = supabase;
+    if (!sb) {
+      setLoading(false);
+      return alert('Supabase not initialized. Try in the browser after env is available.');
+    }
+    const { error } = await (sb as any).auth.signInWithOtp({ email });
     setLoading(false);
     if (error) {
       alert(error.message);

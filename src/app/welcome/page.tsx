@@ -12,17 +12,17 @@ export default function WelcomePage() {
     (async () => {
       const key = 'beachlife_points';
       try {
-        const { data: userData } = await supabase.auth.getUser();
-        const user = userData?.user;
+  const { data: userData } = await (supabase as any).auth.getUser();
+  const user = userData?.user;
         if (user?.id) {
           // fetch existing profile
-          const sel = await supabase.from('profiles').select('points').eq('id', user.id).maybeSingle();
+          const sel = await (supabase as any).from('profiles').select('points').eq('id', user.id).maybeSingle();
           if (sel.error) throw sel.error;
           const profile = sel.data as { points?: number } | null;
           const existingPoints = (profile && profile.points) || 0;
           const newPoints = existingPoints < 1000 ? existingPoints + 1000 : existingPoints;
           // upsert profile with points
-          const { error: upsertErr } = await supabase.from('profiles').upsert({ id: user.id, points: newPoints });
+          const { error: upsertErr } = await (supabase as any).from('profiles').upsert({ id: user.id, points: newPoints });
           if (upsertErr) throw upsertErr;
           localStorage.setItem(key, String(newPoints));
         } else {

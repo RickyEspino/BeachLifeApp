@@ -28,7 +28,9 @@ export default function MerchantRegister() {
     if (amountCents <= 0) return alert('Enter an amount');
     setCreating(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
+      const sb = supabase;
+      if (!sb) throw new Error('Supabase client not initialized. This action must run in the browser after environment variables are available.');
+      const { data: userData } = await (sb as any).auth.getUser();
       const user = userData?.user;
       const points = Math.round(amountCents / 100);
       const expires_at = new Date(Date.now() + 60_000).toISOString();
@@ -41,8 +43,8 @@ export default function MerchantRegister() {
           return;
         }
         const payload = { amountCents, points, expires_at };
-        localStorage.setItem('pending_claim', JSON.stringify(payload));
-        await supabase.auth.signInWithOtp({ email });
+  localStorage.setItem('pending_claim', JSON.stringify(payload));
+  await (sb as any).auth.signInWithOtp({ email });
         alert('Magic link sent. Sign in and return to this page to create the claim.');
         setCreating(false);
         return;
@@ -55,7 +57,7 @@ export default function MerchantRegister() {
           expires_at: string;
         };
         // Use the server-side RPC to create the claim securely
-        const rpcRes = await supabase.rpc('create_claim', { merchant: user.id, amount_cents: amountCents, points, expires_at });
+  const rpcRes = await (sb as any).rpc('create_claim', { merchant: user.id, amount_cents: amountCents, points, expires_at });
         let claimId: string | null = null;
         // rpcRes may be an object with { data } or an array/object directly; check safely
         let rpcErr: unknown = null;
