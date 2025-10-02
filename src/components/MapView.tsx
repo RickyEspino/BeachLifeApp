@@ -26,9 +26,13 @@ type MinimalMap = {
   flyTo: (opts: { center?: [number, number]; zoom?: number } | unknown) => void;
 };
 
-interface MapViewProps { pins?: { id: string; name: string; lat: number; lng: number }[] }
+interface MapViewProps {
+  pins?: { id: string; name: string; lat: number; lng: number }[];
+  loadingPins?: boolean;
+  error?: string | null;
+}
 
-export default function MapView({ pins = [] }: MapViewProps) {
+export default function MapView({ pins = [], loadingPins = false, error = null }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MinimalMap | null>(null);
 
@@ -206,5 +210,13 @@ export default function MapView({ pins = [] }: MapViewProps) {
     }
   }, [pins]);
 
-  return <div ref={mapContainer} className="w-full h-full" />;
+  return (
+    <div ref={mapContainer} className="w-full h-full relative">
+      {(loadingPins || error) && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 bg-black/60 text-white text-xs px-3 py-1 rounded shadow pointer-events-none">
+          {loadingPins ? 'Loading locations…' : error}
+        </div>
+      )}
+    </div>
+  );
 }

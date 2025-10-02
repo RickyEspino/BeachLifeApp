@@ -31,8 +31,6 @@ export function ensureSupabaseClient(): SupabaseClient | null {
 function makeStub(): unknown {
 	// Provide a minimal no-op client surface that returns resolved shapes instead of throwing.
 	// This prevents a hard client-side exception during hydration when env vars are missing.
-	const noOp = async () => ({ data: null, error: { message: 'Supabase client not initialized' } });
-
 	const stub = {
 			auth: {
 				getUser: async () => ({ data: null }),
