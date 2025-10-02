@@ -26,7 +26,13 @@ type MinimalMap = {
   flyTo: (opts: { center?: [number, number]; zoom?: number } | unknown) => void;
 };
 
-export default function MapView() {
+interface MapViewProps {
+  pins?: { id: string; name: string; lat: number; lng: number }[];
+  loadingPins?: boolean;
+  error?: string | null;
+}
+
+export default function MapView({ pins = [], loadingPins: _loadingPins, error: _error }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MinimalMap | null>(null);
 
@@ -75,17 +81,13 @@ export default function MapView() {
   // add controls using the real map instance (maplibregl types expect the concrete object)
   realMap.addControl(new maplibregl.NavigationControl() as unknown);
 
-    const samplePoints = {
+    const featureCollection = {
       type: "FeatureCollection",
-      features: Array.from({ length: 50 }).map((_, i) => {
-        const offsetX = (Math.random() - 0.5) * 0.2;
-        const offsetY = (Math.random() - 0.5) * 0.2;
-        return {
-          type: "Feature",
-          properties: { id: i },
-          geometry: { type: "Point", coordinates: [defaultCenter[0] + offsetX, defaultCenter[1] + offsetY] },
-        };
-      }),
+      features: pins.map((p) => ({
+        type: "Feature",
+        properties: { id: p.id, title: p.name },
+        geometry: { type: "Point", coordinates: [p.lng, p.lat] },
+      })),
     };
 
     mapRef.current.on("load", () => {
@@ -93,7 +95,7 @@ export default function MapView() {
 
       mapRef.current.addSource("points", {
         type: "geojson",
-        data: samplePoints,
+        data: featureCollection,
         cluster: true,
         clusterMaxZoom: 14,
         clusterRadius: 50,
@@ -149,10 +151,14 @@ export default function MapView() {
 
       mapRef.current.on("click", "unclustered-point", (e: { features?: Feature[] }) => {
         const coords = (e.features && e.features[0].geometry.coordinates) as [number, number] | undefined;
-        const id = (e.features && e.features[0].properties && (e.features[0].properties.id as number | undefined)) as number | undefined;
+        const props = e.features && e.features[0].properties as Record<string, unknown> | undefined;
+        const id = props?.id as string | number | undefined;
+        const title = props?.title as string | undefined;
         if (coords) {
-          // use the real Map instance for popup.addTo since typings expect the concrete map
-          new maplibregl.Popup().setLngLat(coords).setHTML(`<div class=\"p-2\">Point #${id ?? "?"}</div>`).addTo(realMap as unknown as import("maplibre-gl").Map);
+          new maplibregl.Popup()
+            .setLngLat(coords)
+            .setHTML(`<div class=\"p-2\"><div class=\"font-semibold\">${title ?? 'Location'}</div><div class=\"text-xs\">ID: ${id ?? '?'}</div></div>`)
+            .addTo(realMap as unknown as import("maplibre-gl").Map);
         }
       });
     });
@@ -179,7 +185,7 @@ export default function MapView() {
       mapRef.current = null;
       document.body.classList.remove("hide-bottom-nav");
     };
-  }, []);
+  }, [pins]);
 
   return <div ref={mapContainer} className="w-full h-full" />;
 }
