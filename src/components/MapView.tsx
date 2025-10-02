@@ -35,6 +35,7 @@ interface MapViewProps {
 export default function MapView({ pins = [], loadingPins = false, error = null }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MinimalMap | null>(null);
+  const lastUserCoords = useRef<[number, number] | null>(null);
 
   // Initialize map once
   useEffect(() => {
@@ -164,17 +165,71 @@ export default function MapView({ pins = [], loadingPins = false, error = null }
       });
     });
 
+    // User location source + layer (pulsing dot) will be added after first successful position
+    let watchId: number | null = null;
     if (navigator.geolocation) {
+      const addOrUpdateUserLocation = (lng: number, lat: number) => {
+        lastUserCoords.current = [lng, lat];
+        type MutableMap = { getSource?: (id: string) => unknown; addSource?: (id: string, src: unknown) => void; addLayer?: (layer: unknown) => void };
+        const m = realMap as unknown as MutableMap; // narrowed structural type
+        const feature = {
+          type: 'FeatureCollection',
+          features: [
+            { type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] }, properties: {} },
+          ],
+        };
+        const src = typeof m.getSource === 'function' ? (m.getSource('user-location') as unknown) : null;
+        if (src && (src as { setData?: (d: unknown) => void }).setData) {
+          try { (src as { setData?: (d: unknown) => void }).setData?.(feature); } catch { /* ignore */ }
+          return;
+        }
+        if (typeof m.addSource === 'function') {
+          try {
+            m.addSource('user-location', { type: 'geojson', data: feature });
+            if (typeof m.addLayer === 'function') m.addLayer({
+              id: 'user-location-glow',
+              type: 'circle',
+              source: 'user-location',
+              paint: {
+                'circle-radius': 14,
+                'circle-color': '#3b82f6',
+                'circle-opacity': 0.25,
+              },
+            });
+            if (typeof m.addLayer === 'function') m.addLayer({
+              id: 'user-location-dot',
+              type: 'circle',
+              source: 'user-location',
+              paint: {
+                'circle-radius': 6,
+                'circle-color': '#2563eb',
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#fff',
+              },
+            });
+          } catch {
+            setTimeout(() => addOrUpdateUserLocation(lng, lat), 200);
+          }
+        }
+      };
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
-          (realMap as unknown as MinimalMap).flyTo({ center: [longitude, latitude], zoom: 13 });
-          new maplibregl.Marker({ color: "#000" }).setLngLat([longitude, latitude]).addTo(realMap as unknown as import("maplibre-gl").Map);
+          (realMap as unknown as MinimalMap).flyTo({ center: [longitude, latitude], zoom: 14 });
+          addOrUpdateUserLocation(longitude, latitude);
         },
-        () => {
-          // ignore
+        () => { /* ignore */ },
+        { enableHighAccuracy: true, timeout: 7000 }
+      );
+
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+            addOrUpdateUserLocation(longitude, latitude);
         },
-        { enableHighAccuracy: true, timeout: 5000 }
+        () => { /* ignore */ },
+        { enableHighAccuracy: true, maximumAge: 5000 }
       );
     }
 
@@ -182,6 +237,9 @@ export default function MapView({ pins = [], loadingPins = false, error = null }
     mapRef.current.on("moveend", () => setTimeout(() => document.body.classList.remove("hide-bottom-nav"), 200));
 
     return () => {
+      if (watchId !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchId);
+      }
       mapRef.current?.remove();
       mapRef.current = null;
       document.body.classList.remove("hide-bottom-nav");
@@ -217,6 +275,16 @@ export default function MapView({ pins = [], loadingPins = false, error = null }
           {loadingPins ? 'Loading locations…' : error}
         </div>
       )}
+      <button
+        type="button"
+        onClick={() => {
+          type Easeable = { easeTo?: (opts: unknown) => void };
+          const m = mapRef.current as unknown as Easeable;
+          if (!m || !lastUserCoords.current) return;
+          m.easeTo?.({ center: lastUserCoords.current, zoom: 15 });
+        }}
+        className="absolute z-10 bottom-4 right-4 bg-white/90 backdrop-blur text-xs px-3 py-2 rounded shadow hover:bg-white active:scale-95 transition"
+      >My Location</button>
     </div>
   );
 }
