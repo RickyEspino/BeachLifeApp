@@ -26,16 +26,13 @@ type MinimalMap = {
   flyTo: (opts: { center?: [number, number]; zoom?: number } | unknown) => void;
 };
 
-interface MapViewProps {
-  pins?: { id: string; name: string; lat: number; lng: number }[];
-  loadingPins?: boolean;
-  error?: string | null;
-}
+interface MapViewProps { pins?: { id: string; name: string; lat: number; lng: number }[] }
 
-export default function MapView({ pins = [], loadingPins: _loadingPins, error: _error }: MapViewProps) {
+export default function MapView({ pins = [] }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MinimalMap | null>(null);
 
+  // Initialize map once
   useEffect(() => {
     if (!mapContainer.current) return;
     if (mapRef.current) return;
@@ -185,6 +182,28 @@ export default function MapView({ pins = [], loadingPins: _loadingPins, error: _
       mapRef.current = null;
       document.body.classList.remove("hide-bottom-nav");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once for map init
+  }, []);
+
+  // Update source data when pins change
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const sourceUnknown = mapRef.current.getSource && mapRef.current.getSource('points');
+    const realSource = sourceUnknown as { setData?: (d: unknown) => void } | null;
+    if (!realSource || typeof realSource.setData !== 'function') return;
+    const newCollection = {
+      type: 'FeatureCollection',
+      features: (pins || []).map(p => ({
+        type: 'Feature',
+        properties: { id: p.id, title: p.name },
+        geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
+      })),
+    };
+    try {
+      realSource.setData(newCollection);
+    } catch {
+      // ignore
+    }
   }, [pins]);
 
   return <div ref={mapContainer} className="w-full h-full" />;
